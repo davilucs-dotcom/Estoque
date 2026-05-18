@@ -1,24 +1,25 @@
+import os
+from dotenv import load_dotenv
 import customtkinter as ctk
 from tkinter import messagebox
 from supabase import create_client
 
-# ATENÇÃO: Para testes locais. Em produção, use um arquivo .env para esconder essas credenciais.
-URL = "https://chcudyivoxfynokdqkcv.supabase.co"
-KEY = "sb_publishable_45_ggMieNcAEniVOZ5EtQg_WnZUq8DP"
+load_dotenv()
+
+URL = os.getenv("SUPABASE_URL")
+KEY = os.getenv("SUPABASE_KEY")
+
 supabase = create_client(URL, KEY)
 
 app = ctk.CTk()
 app.title("Sistema de Mercado Pro")
 app.geometry("600x700")
 
-# --- FUNÇÕES ---
 def carregar_estoque():
-    # Limpa a lista visual antes de carregar
     for widget in frame_lista.winfo_children():
         widget.destroy()
     
     try:
-        # OTIMIZAÇÃO: Busca apenas os campos necessários, melhorando a performance
         res = supabase.table("produtos").select("id, nome, preco, quantidade").order("nome").execute()
         produtos = res.data
         
@@ -39,7 +40,6 @@ def cadastrar():
     qtd = entry_qtd.get()
     
     if nome and preco and qtd:
-        # UX: Caixa de confirmação antes de salvar no banco
         resposta = messagebox.askyesno("Confirmação", f"Deseja cadastrar o produto '{nome}'?")
         
         if resposta:
@@ -48,7 +48,6 @@ def cadastrar():
                 supabase.table("produtos").insert(data).execute()
                 label_status.configure(text=f"{nome} salvo com sucesso!", text_color="green")
                 
-                # Limpa os campos após o cadastro
                 entry_nome.delete(0, 'end')
                 entry_preco.delete(0, 'end')
                 entry_qtd.delete(0, 'end')
@@ -58,10 +57,8 @@ def cadastrar():
     else:
         label_status.configure(text="Preencha todos os campos!", text_color="yellow")
 
-# --- INTERFACE ---
 ctk.CTkLabel(app, text="GERENCIADOR DE ESTOQUE", font=("Arial", 22, "bold")).pack(pady=20)
 
-# Frame de Cadastro
 frame_cad = ctk.CTkFrame(app)
 frame_cad.pack(pady=10, padx=20, fill="x")
 
@@ -80,18 +77,14 @@ btn_salvar.pack(pady=10)
 label_status = ctk.CTkLabel(frame_cad, text="")
 label_status.pack()
 
-# --- ÁREA DE VISUALIZAÇÃO ---
 ctk.CTkLabel(app, text="ITENS EM ESTOQUE", font=("Arial", 16, "bold")).pack(pady=10)
 
-# Lista com barra de rolagem
 frame_lista = ctk.CTkScrollableFrame(app, width=550, height=300)
 frame_lista.pack(pady=10, padx=20, fill="both", expand=True)
 
-# Botão de atualização manual
 btn_refresh = ctk.CTkButton(app, text="ATUALIZAR LISTA", command=carregar_estoque, fg_color="blue")
 btn_refresh.pack(pady=10)
 
-# Carrega os dados assim que o programa é aberto
 carregar_estoque()
 
 app.mainloop()

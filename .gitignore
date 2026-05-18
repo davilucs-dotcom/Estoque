@@ -1,0 +1,9 @@
+# Esconder as palavras-passe locais (do main.py)
+.env
+
+# Esconder as palavras-passe da web (do app.py)
+.streamlit/
+
+# Esconder pastas automáticas do Python (boa prática)
+__pycache__/
+.venv/
